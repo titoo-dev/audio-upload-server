@@ -1,30 +1,31 @@
 @import "tailwindcss";
 
-
-@theme {
-    --color-background: hsl(78 63% 99%);
-    --color-foreground: hsl(78 78% 3%);
-    --color-muted: hsl(48 10% 92%);
-    --color-muted-foreground: hsl(48 7% 38%);
-    --color-popover: hsl(78 63% 99%);
-    --color-popover-foreground: hsl(78 78% 3%);
-    --color-card: hsl(78 63% 98%);
-    --color-card-foreground: hsl(78 78% 2%);
-    --color-border: hsl(78 8% 93%);
-    --color-input: hsl(78 8% 93%);
-    --color-primary: hsl(78 32% 75%);
-    --color-primary-foreground: hsl(78 32% 15%);
-    --color-secondary: hsl(48 32% 75%);
-    --color-secondary-foreground: hsl(48 32% 15%);
-    --color-accent: hsl(108 32% 75%);
-    --color-accent-foreground: hsl(108 32% 15%);
-    --color-destructive: hsl(22 87% 26%);
-    --color-destructive-foreground: hsl(22 87% 86%);
-    --color-ring: hsl(78 32% 75%);
-    --color-chart-1: hsl(78 32% 75%);
-    --color-chart-2: hsl(48 32% 75%);
-    --color-chart-3: hsl(108 32% 75%);
-    --color-chart-4: hsl(48 32% 78%);
-    --color-chart-5: hsl(78 35% 75%);
-    --radius: 0.5rem;
+@layer base {
+    :root {
+        --background: 78 63% 99%;
+        --foreground: 78 78% 3%;
+        --muted: 48 10% 92%;
+        --muted-foreground: 48 7% 38%;
+        --popover: 78 63% 99%;
+        --popover-foreground: 78 78% 3%;
+        --card: 78 63% 98%;
+        --card-foreground: 78 78% 2%;
+        --border: 78 8% 93%;
+        --input: 78 8% 93%;
+        --primary: 78 32% 75%;
+        --primary-foreground: 78 32% 15%;
+        --secondary: 48 32% 75%;
+        --secondary-foreground: 48 32% 15%;
+        --accent: 108 32% 75%;
+        --accent-foreground: 108 32% 15%;
+        --destructive: 22 87% 26%;
+        --destructive-foreground: 22 87% 86%;
+        --ring: 78 32% 75%;
+        --chart-1: 78 32% 75%;
+        --chart-2: 48 32% 75%;
+        --chart-3: 108 32% 75%;
+        --chart-4: 48 32% 78%;
+        --chart-5: 78 35% 75%;
+        --radius: 0.5rem;
+    }
 }
