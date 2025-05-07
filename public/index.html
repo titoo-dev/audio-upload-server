@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Upload</title>
+    <link href="output.css" rel="stylesheet">
+</head>
+<body class="font-sans min-h-screen bg-gradient-to-bl from-violet-50 via-purple-50 to-indigo-100 flex flex-col">
+    <header class="py-6 px-4">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">Audio Uploader</h1>
+        </div>
+    </header>
+    
+    <main class="flex-grow flex items-center justify-center p-6">
+        <div class="w-full max-w-5xl backdrop-blur-sm bg-white/80 rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+            <div class="grid grid-cols-1 lg:grid-cols-2">
+                <!-- Upload Section -->
+                <div class="p-10 relative">
+                    <div class="absolute -top-20 -left-20 w-40 h-40 bg-purple-300 rounded-full filter blur-3xl opacity-20"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                            </svg>
+                            Upload Your Audio
+                        </h2>
+                        
+                        <div class="group border-2 border-dashed border-purple-200 hover:border-purple-400 rounded-2xl p-8 text-center transition-all duration-300 bg-gradient-to-br from-white to-purple-50">
+                            <input type="file" id="audio-file" class="hidden" accept="audio/*">
+                            <label for="audio-file" class="flex flex-col items-center justify-center cursor-pointer">
+                                <div class="w-24 h-24 mb-4 rounded-full bg-purple-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <svg class="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                </div>
+                                <span class="inline-block font-medium text-sm text-purple-600 mb-1">Drag and drop or click to browse</span>
+                                <span id="file-name" class="text-sm text-gray-500">Supports MP3, WAV, OGG, FLAC</span>
+                            </label>
+                        </div>
+                        
+                        <button id="upload-btn" disabled class="w-full mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl shadow-lg transition-all text-base font-medium flex items-center justify-center">
+                            <span>Upload Audio</span>
+                        </button>
+                        
+                        <div id="status" class="mt-6 p-4 rounded-xl hidden"></div>
+                    </div>
+                </div>
+                
+                <!-- Preview Section -->
+                <div class="p-10 relative bg-gradient-to-br from-gray-50 to-slate-100 backdrop-filter backdrop-blur-sm">
+                    <div class="absolute -bottom-20 -right-20 w-60 h-60 bg-indigo-300 rounded-full filter blur-3xl opacity-10"></div>
+                    
+                    <div id="preview-container" class="hidden relative z-10">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Audio Preview
+                        </h2>
+                        
+                        <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-lg border border-white">
+                            <div class="mb-6">
+                                <audio id="audio-preview" controls class="w-full h-12"></audio>
+                            </div>
+                            
+                            <div id="blob-info" class="bg-slate-100 p-5 rounded-xl text-left font-mono text-sm space-y-3 border border-slate-200"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="no-preview" class="h-full flex items-center justify-center relative z-10">
+                        <div class="text-center py-16">
+                            <div class="w-32 h-32 mx-auto mb-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <svg class="w-16 h-16 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"></svg>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <p class="text-xl font-medium text-slate-600 mb-2">No Audio Selected</p>
+                            <p class="text-slate-500 max-w-xs mx-auto">Upload an audio file to preview and analyze its contents</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="py-6 px-4 text-center">
+        <p class="text-indigo-600/70 text-sm font-medium">Audio Uploader • Created with ♪ • 2023</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('audio-file');
+            const fileNameDisplay = document.getElementById('file-name');
+            const uploadButton = document.getElementById('upload-btn');
+            const statusDiv = document.getElementById('status');
+            const previewContainer = document.getElementById('preview-container');
+            const noPreview = document.getElementById('no-preview');
+            const audioPreview = document.getElementById('audio-preview');
+            const blobInfo = document.getElementById('blob-info');
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                
+                if (file) {
+                    fileNameDisplay.textContent = `Selected: ${file.name}`;
+                    uploadButton.disabled = false;
+                    
+                    // Display file information
+                    const fileSizeKB = (file.size / 1024).toFixed(2);
+                    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    
+                    blobInfo.innerHTML = `
+                        <div class="flex items-center"><span class="text-indigo-600 font-semibold w-32">File name:</span> <span class="text-gray-700">${file.name}</span></div>
+                        <div class="flex items-center"><span class="text-indigo-600 font-semibold w-32">Size:</span> <span class="text-gray-700">${fileSizeKB} KB (${fileSizeMB} MB)</span></div>
+                        <div class="flex items-center"><span class="text-indigo-600 font-semibold w-32">Type:</span> <span class="text-gray-700">${file.type}</span></div>
+                        <div class="flex items-center"><span class="text-indigo-600 font-semibold w-32">Modified:</span> <span class="text-gray-700">${new Date(file.lastModified).toLocaleString()}</span></div>
+                    `;
+                    
+                    // Create audio preview
+                    const objectURL = URL.createObjectURL(file);
+                    audioPreview.src = objectURL;
+                    previewContainer.classList.remove('hidden');
+                    noPreview.classList.add('hidden');
+                } else {
+                    fileNameDisplay.textContent = 'Supports MP3, WAV, OGG, FLAC';
+                    uploadButton.disabled = true;
+                    previewContainer.classList.add('hidden');
+                    noPreview.classList.remove('hidden');
+                }
+            });
+            
+            uploadButton.addEventListener('click', async () => {
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showStatus('Please select a file first.', 'bg-red-100 text-red-700 border border-red-200');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('audio', file);
+                
+                try {
+                    uploadButton.disabled = true;
+                    uploadButton.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Uploading...';
+                    
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        showStatus(`Upload successful! Server received: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`, 'bg-green-100 text-green-700 border border-green-200');
+                    } else {
+                        showStatus(`Error: ${result.error}`, 'bg-red-100 text-red-700 border border-red-200');
+                    }
+                } catch (error) {
+                    showStatus(`Upload failed: ${error.message}`, 'bg-red-100 text-red-700 border border-red-200');
+                } finally {
+                    uploadButton.disabled = false;
+                    uploadButton.innerHTML = '<span>Upload Audio</span>';
+                }
+            });
+            
+            function showStatus(message, classes) {
+                statusDiv.textContent = message;
+                statusDiv.className = `mt-6 p-4 rounded-xl ${classes}`;
+                statusDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
