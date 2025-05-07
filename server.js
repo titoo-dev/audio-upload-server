@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-// const { exec } = require('child_process');
+const { exec } = require('child_process');
 
 // Initialize Express app
 const app = express();
@@ -75,7 +75,8 @@ app.post('/upload', upload.single('audio'), (req, res) => {
       file: {
         name: req.file.originalname,
         size: req.file.size,
-        mimetype: req.file.mimetype
+        mimetype: req.file.mimetype,
+        storedFilename: req.file.filename  // Added stored filename
       }
     });
   } catch (error) {
@@ -85,23 +86,69 @@ app.post('/upload', upload.single('audio'), (req, res) => {
 });
 
 
-// Route to execute process on uploaded file
-// app.post('/process/:filename', (req, res) => {
-//   const filename = req.params.filename;
-//   const filePath = path.join(__dirname, 'uploads', filename);
+// Handle audio separation
+app.post('/separate/:filename', (req, res) => {
+  const inputFile = req.params.filename;
+  const inputPath = path.join(__dirname, 'uploads', inputFile);
+  const outputDir = path.join(__dirname, 'outputs');
 
-//   if (!fs.existsSync(filePath)) {
-//     return res.status(404).json({ error: 'File not found' });
-//   }
+  // Verify file exists
+  if (!fs.existsSync(inputPath)) {
+    return res.status(404).json({ error: 'Audio file not found' });
+  }
 
-//   exec(`ffmpeg -i ${filePath} -f null -`, (error, stdout, stderr) => {
-//     if (error) {
-//       console.error(`Process error: ${error}`);
-//       return res.status(500).json({ error: 'Process execution failed' });
-//     }
-//     res.json({ message: 'Process completed successfully' });
-//   });
-// });
+  console.log('--- Starting Audio Separation ---');
+  console.log('Input file:', inputFile);
+  console.log('Input path:', inputPath);
+  console.log('Output directory:', outputDir);
+
+  // Create output directory if it doesn't exist
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+    console.log('Created output directory');
+  }
+
+  const command = `python -m demucs.separate --mp3 --mp3-bitrate 320 -n htdemucs --two-stems=vocals --clip-mode rescale --overlap 0.25 "${inputPath}" -o "${outputDir}"`;
+  console.log('Executing command:', command);
+
+  const process = exec(command);
+
+  // Track process output
+  process.stdout.on('data', (data) => {
+    console.log('Demucs output:', data.toString());
+  });
+
+  process.stderr.on('data', (data) => {
+    console.error('Demucs error:', data.toString());
+  });
+
+  process.on('close', (code) => {
+    console.log('Demucs process exited with code:', code);
+
+    if (code !== 0) {
+      console.error('Process failed with code:', code);
+      return res.status(500).json({ error: 'Failed to process audio' });
+    }
+
+    // Get paths to generated files
+    const baseFilename = path.parse(inputFile).name;
+    const outputFiles = {
+      vocals: path.join(outputDir, 'htdemucs', baseFilename, 'vocals.mp3'),
+      instrumental: path.join(outputDir, 'htdemucs', baseFilename, 'no_vocals.mp3')
+    };
+
+    console.log('Generated output files:', outputFiles);
+    res.json({
+      message: 'Audio separated successfully',
+      files: outputFiles
+    });
+  });
+
+  process.on('error', (error) => {
+    console.error('Failed to start Demucs process:', error);
+    res.status(500).json({ error: 'Failed to start audio processing' });
+  });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
