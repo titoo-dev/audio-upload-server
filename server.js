@@ -4,6 +4,8 @@ const path = require("path");
 const fs = require("fs");
 const { exec } = require("child_process");
 const cors = require("cors");
+const SSE = require("express-sse");
+const sse = new SSE();
 
 // Initialize Express app
 const app = express();
@@ -53,6 +55,8 @@ const upload = multer({
 app.use(cors());
 // Serve static files from public directory
 app.use("/output", express.static(path.join(__dirname, "output")));
+
+app.get("/stream", sse.init);
 
 // Serve separated audio files
 app.get("/output/htdemucs/:filename/:type.mp3", (req, res) => {
@@ -126,6 +130,13 @@ app.post("/separate/:filename", (req, res) => {
     console.log("Created output directory");
   }
 
+  // Send initial status
+  sse.send({
+    status: "started",
+    message: "Starting audio separation",
+    progress: 0
+  }, "separation-progress");
+
   const command = `docker run --rm -v "${__dirname}/input:/data/input" -v "${__dirname}/output:/data/output" -v "${__dirname}/models:/data/models" xserrat/facebook-demucs:latest "python3 -m demucs.separate -d cpu --mp3 --mp3-bitrate 320 -n htdemucs --two-stems=vocals --clip-mode rescale --overlap 0.25 '/data/input/${inputFile}' -o '/data/output'"`;
 
   console.log("Executing command:", command);
@@ -135,10 +146,27 @@ app.post("/separate/:filename", (req, res) => {
   // Track process output
   process.stdout.on("data", (data) => {
     console.log("Demucs output:", data.toString());
+    
+    // Parse progress information if available
+    const output = data.toString();
+    const progressMatch = output.match(/([0-9]+)%/);
+    if (progressMatch) {
+      const progressPercent = parseInt(progressMatch[1], 10);
+      sse.send({
+        status: "processing",
+        message: `Processing: ${progressPercent}% complete`,
+        progress: progressPercent
+      }, "separation-progress");
+    }
   });
 
   process.stderr.on("data", (data) => {
     console.error("Demucs error:", data.toString());
+    sse.send({
+      status: "error",
+      message: `Error: ${data.toString()}`,
+      progress: -1
+    }, "separation-progress");
   });
 
   process.on("close", (code) => {
@@ -146,6 +174,11 @@ app.post("/separate/:filename", (req, res) => {
 
     if (code !== 0) {
       console.error("Process failed with code:", code);
+      sse.send({
+        status: "failed",
+        message: `Process failed with code: ${code}`,
+        progress: -1
+      }, "separation-progress");
       return res.status(500).json({ error: "Failed to process audio" });
     }
 
@@ -161,6 +194,17 @@ app.post("/separate/:filename", (req, res) => {
       ),
     };
 
+    // Send completion event
+    sse.send({
+      status: "completed",
+      message: "Audio separation completed",
+      progress: 100,
+      files: {
+        vocals: `/output/htdemucs/${baseFilename}/vocals.mp3`,
+        instrumental: `/output/htdemucs/${baseFilename}/no_vocals.mp3`
+      }
+    }, "separation-progress");
+
     console.log("Generated output files:", outputFiles);
     res.json({
       message: "Audio separated successfully",
@@ -170,6 +214,11 @@ app.post("/separate/:filename", (req, res) => {
 
   process.on("error", (error) => {
     console.error("Failed to start Demucs process:", error);
+    sse.send({
+      status: "failed",
+      message: `Failed to start process: ${error.message}`,
+      progress: -1
+    }, "separation-progress");
     res.status(500).json({ error: "Failed to start audio processing" });
   });
 });
