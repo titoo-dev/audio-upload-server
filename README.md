@@ -1,31 +1,67 @@
-# Makefile for Demucs Audio Source Separation
+# Express Audio Upload & Demucs Separation Server
 
-This Makefile provides commands to run the Facebook Demucs audio source separation tool in a Docker container.
-It supports both CPU and GPU processing, with various configuration options.
+This project is an Express-based web application that handles audio file uploads and processes them using the Demucs source separation tool. It separates vocals and instruments from audio files by leveraging a Dockerized Demucs model.
 
-## Options
+## Features
 
-| Option     | Description                                        | Default    |
-|------------|----------------------------------------------------|------------|
-| gpu        | Set to 'true' to enable GPU acceleration           | false      |
-| mp3output  | Set to 'true' to output MP3 files instead of WAV   | false      |
-| model      | Specify the Demucs model to use                    | htdemucs   |
-| shifts     | Number of predictions to average                   | 1          |
-| overlap    | Overlap between prediction windows                 | 0.25       |
-| jobs       | Number of parallel jobs                            | 1          |
-| splittrack | Optional parameter to split into two stems only    |            |
-| track      | Input track filename (required for 'run' target)   |            |
+- Upload standard audio files (MP3, WAV) up to 10MB.
+- Trigger audio separation processing via a web API endpoint.
+- Docker integration for running Demucs with the following configuration:
 
-## Targets
+    ```bash
+    python -m demucs.separate \
+        --mp3 \
+        --mp3-bitrate 320 \
+        -n htdemucs \
+        --two-stems=vocals \
+        --clip-mode rescale \
+        --overlap 0.25 \
+        <input_file_path> \
+        -o outputs
+    ```
 
-- **help** - Display available targets
-- **run** - Process a specific track from the input folder
-- **run-interactive** - Start an interactive Docker shell for manual Demucs commands
-- **build** - Build the Demucs Docker image
+- Serve separated audio files (vocals and instrumental tracks) through dedicated endpoints.
+- Temporary server storage for uploaded and processed files.
+
+## Installation
+
+1. Clone the repository.
+2. Install Node.js dependencies:
+
+     ```bash
+     npm install
+     ```
+
+3. (Optional) Run the setup script to install platform-specific dependencies:
+
+     ```bash
+     npm run setup
+     ```
+
+## Usage
+
+### Running the Server
+
+Start the Express server:
+
+```bash
+npm start
+```
+
+For development with hot-reloading (using nodemon):
+
+```bash
+npm run dev
+```
+
+## Docker Integration
+
+The audio processing is executed inside a Docker container using the Demucs image. The Docker command mounts the necessary directories and executes the Demucs separation script with configured options.
+
+For more details on the Demucs model and usage, refer to the [Demucs GitHub repository](https://github.com/facebookresearch/demucs) and [model documentation](https://github.com/facebookresearch/demucs#separation).
 
 ## Example Usage
 
-```bash
-make run track=mysong.mp3 gpu=true
-make run-interactive
-```
+1. Upload an audio file via the `/upload` endpoint.
+2. Call `/separate/<storedFilename>` to process the file.
+3. Access the separated tracks at the URLs provided in the JSON response, and use the download buttons in your web interface as needed.
