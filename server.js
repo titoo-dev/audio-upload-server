@@ -12,9 +12,9 @@ const port = 8000;
 // Set up storage for multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "uploads");
+    const uploadDir = path.join(__dirname, "input");
 
-    // Create the uploads directory if it doesn't exist
+    // Create the input directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -50,14 +50,20 @@ const upload = multer({
   },
 });
 
-app.use(cors())
+app.use(cors());
 // Serve static files from public directory
-app.use("/outputs", express.static(path.join(__dirname, "outputs")));
+app.use("/output", express.static(path.join(__dirname, "output")));
 
 // Serve separated audio files
-app.get("/outputs/htdemucs/:filename/:type.mp3", (req, res) => {
+app.get("/output/htdemucs/:filename/:type.mp3", (req, res) => {
   const { filename, type } = req.params;
-  const filePath = path.join(__dirname, "outputs", "htdemucs", filename, `${type}.mp3`);
+  const filePath = path.join(
+    __dirname,
+    "output",
+    "htdemucs",
+    filename,
+    `${type}.mp3`
+  );
 
   // Check if file exists
   if (fs.existsSync(filePath)) {
@@ -101,8 +107,8 @@ app.post("/upload", upload.single("audio"), (req, res) => {
 // Handle audio separation
 app.post("/separate/:filename", (req, res) => {
   const inputFile = req.params.filename;
-  const inputPath = path.join(__dirname, "uploads", inputFile);
-  const outputDir = path.join(__dirname, "outputs");
+  const inputPath = path.join(__dirname, "input", inputFile);
+  const outputDir = path.join(__dirname, "output");
 
   // Verify file exists
   if (!fs.existsSync(inputPath)) {
@@ -120,7 +126,8 @@ app.post("/separate/:filename", (req, res) => {
     console.log("Created output directory");
   }
 
-  const command = `python -m demucs.separate --mp3 --mp3-bitrate 320 -n htdemucs --two-stems=vocals --clip-mode rescale --overlap 0.25 "${inputPath}" -o "${outputDir}"`;
+  const command = `docker run --rm -v "${__dirname}/input:/data/input" -v "${__dirname}/output:/data/output" -v "${__dirname}/models:/data/models" xserrat/facebook-demucs:latest "python3 -m demucs.separate -d cpu --mp3 --mp3-bitrate 320 -n htdemucs --two-stems=vocals --clip-mode rescale --overlap 0.25 '/data/input/${inputFile}' -o '/data/output'"`;
+
   console.log("Executing command:", command);
 
   const process = exec(command);

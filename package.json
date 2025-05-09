@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "setup": "node -e \"require('os').platform() === 'win32' ? require('child_process').execSync('powershell -ExecutionPolicy Bypass -File setup.ps1', {stdio: 'inherit'}) : require('child_process').execSync('bash setup.sh', {stdio: 'inherit'})\""
   },
   "dependencies": {
     "cors": "^2.8.5",

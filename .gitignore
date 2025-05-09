@@ -14,8 +14,9 @@ yarn.lock
 .env.production.local
 
 # Upload directory
-uploads/
-outputs/
+input/
+output/
+models/
 
 # Build files
 dist/
