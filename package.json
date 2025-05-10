@@ -2,11 +2,14 @@
   "name": "audio-upload-server",
   "version": "1.0.0",
   "description": "Express server for handling audio file uploads",
-  "main": "server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "setup": "node -e \"require('os').platform() === 'win32' ? require('child_process').execSync('powershell -ExecutionPolicy Bypass -File setup.ps1', {stdio: 'inherit'}) : require('child_process').execSync('bash setup.sh', {stdio: 'inherit'})\""
+    "start": "node dist/server.js",
+    "dev": "nodemon",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "setup": "node -e \"require('os').platform() === 'win32' ? require('child_process').execSync('powershell -ExecutionPolicy Bypass -File setup.ps1', {stdio: 'inherit'}) : require('child_process').execSync('bash setup.sh', {stdio: 'inherit'})\"",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -17,6 +20,12 @@
     "npm": "^11.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@types/cors": "^2.8.18",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^20.10.0",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
   }
 }
