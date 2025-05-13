@@ -51,7 +51,7 @@ class YoutubeService {
     });
   }
 
-  async downloadVideo(url: string): Promise<{success: boolean, error?: string}> {
+  async downloadVideo(url: string): Promise<{success: boolean, error?: string, filename?: string}> {
     try {
       fileService.ensureDirectoriesExist();
       this.sendProgressUpdate('started', 'Starting download', 0);
@@ -60,7 +60,27 @@ class YoutubeService {
       const process = exec(command);
 
       this.handleProcessOutput(process);
-      return await this.createProcessPromise(process);
+      const result = await this.createProcessPromise(process);
+      
+      if (result.success) {
+        const filename = fileService.getLatestDownloadedFile();
+        if (!filename) {
+          return {
+            success: false,
+            error: 'Failed to locate downloaded file'
+          };
+        }
+        
+        // Move file from downloads to input directory if needed
+        const movedFilename = fileService.moveDownloadToInput(filename);
+        
+        return { 
+          success: true,
+          filename: movedFilename
+        };
+      }
+      
+      return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.sendProgressUpdate('error', errorMessage, 0);

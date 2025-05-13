@@ -13,6 +13,9 @@ router.get('/stream', sse.init);
 // Route for audio separation
 router.post('/separate/:filename', audioController.separateAudio);
 
+// Route for YouTube audio separation
+router.post('/separate-youtube', audioController.separateYoutubeAudio);
+
 // Route for accessing processed audio files
 router.get('/htdemucs/:filename/:type.mp3', audioController.getProcessedAudio);
 

@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import { fileService } from './file.service';
 import { dockerUtils } from '../utils';
 import { sse } from '../routes/audio.routes';
+import { youtubeService } from './youtube.service';
 
 class DemucsService {
   /**
@@ -79,10 +80,10 @@ class DemucsService {
   /**
    * Creates a promise that resolves when the process is complete
    */
-  private createProcessPromise(process: any, filename: string): Promise<{success: boolean, error?: string}> {
+  private createProcessPromise(process: any, filename: string): Promise<{success: boolean, error?: string, filename?: string}> {
     let progress = 0;
     
-    return new Promise<{success: boolean, error?: string}>((resolve, reject) => {
+    return new Promise<{success: boolean, error?: string, filename?: string}>((resolve, reject) => {
       process.on('close', (code: number | null) => {
         if (code === 0) {
           // Get file paths for separated tracks
@@ -95,7 +96,7 @@ class DemucsService {
             files
           );
           
-          resolve({ success: true });
+          resolve({ success: true, filename });
         } else {
           const errorMsg = `Process exited with code ${code}`;
           this.sendProgressUpdate('failed', errorMsg, progress);
@@ -114,7 +115,7 @@ class DemucsService {
   /**
    * Executes the separation process
    */
-  private async executeProcess(command: string, filename: string): Promise<{success: boolean, error?: string}> {
+  private async executeProcess(command: string, filename: string): Promise<{success: boolean, error?: string, filename?: string}> {
     try {
       // Execute the command
       const process = exec(command);
@@ -143,7 +144,7 @@ class DemucsService {
   /**
    * Separates audio file into vocals and instrumental tracks using Demucs
    */
-  async separateAudio(filename: string): Promise<{success: boolean, error?: string}> {
+  async separateAudio(filename: string): Promise<{success: boolean, error?: string, filename?: string}> {
     // Validate input and prepare environment
     if (!this.validateAndPrepare(filename)) {
       return { success: false, error: 'Input file not found' };
@@ -154,6 +155,33 @@ class DemucsService {
     
     // Execute the process
     return this.executeProcess(command, filename);
+  }
+
+  /**
+   * Downloads a YouTube video and separates its audio
+   */
+  async downloadAndSeparate(url: string): Promise<{success: boolean, error?: string, filename?: string}> {
+    try {
+      // Download video from YouTube
+      const downloadResult = await youtubeService.downloadVideo(url);
+      
+      if (!downloadResult.success || !downloadResult.filename) {
+        return {
+          success: false,
+          error: downloadResult.error || 'Failed to download video'
+        };
+      }
+
+      // Separate the downloaded audio
+      return await this.separateAudio(downloadResult.filename);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendErrorStatus(errorMessage, 0);
+      return {
+        success: false,
+        error: errorMessage
+      };
+    }
   }
 }
 

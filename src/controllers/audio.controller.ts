@@ -37,6 +37,42 @@ export const audioController = {
   },
   
   /**
+   * Handle audio separation from YouTube URL
+   */
+  separateYoutubeAudio: async (req: Request, res: Response) => {
+    const { url } = req.body;
+    
+    // Validate URL
+    if (!url) {
+      return res.status(400).json({
+        error: 'YouTube URL is required'
+      });
+    }
+    
+    // Start audio separation process with SSE
+    const result = await demucsService.downloadAndSeparate(url);
+    
+    if (!result.success) {
+      return res.status(500).json({
+        error: result.error || 'Failed to process YouTube audio'
+      });
+    }
+    
+    // Return response with file URLs
+    if (result.filename) {
+      const files = fileService.getProcessedFilePaths(result.filename);
+      return res.status(200).json({
+        message: 'YouTube audio separation completed',
+        files
+      });
+    }
+    
+    return res.status(200).json({
+      message: 'YouTube audio separation completed'
+    });
+  },
+  
+  /**
    * Serve processed audio files
    */
   getProcessedAudio: (req: Request, res: Response) => {
