@@ -4,6 +4,7 @@
 $BASE_DIR = Split-Path -Parent $PSScriptRoot
 $INPUT_DIR = Join-Path $BASE_DIR "storage\input"
 $OUTPUT_DIR = Join-Path $BASE_DIR "storage\output"
+$DOWNLOAD_DIR = Join-Path $BASE_DIR "storage\download"
 
 # Function to safely remove MP3 files from a directory
 function Clean-Directory {
@@ -15,8 +16,8 @@ function Clean-Directory {
     if (Test-Path $Directory) {
         Write-Host "Cleaning $Name directory and its subdirectories..."
         try {
-            if ($Name -eq "output") {
-                # Remove all contents including subdirectories for output
+            if ($Name -eq "output" -or $Name -eq "download") {
+                # Remove all contents including subdirectories for output and download
                 Get-ChildItem -Path $Directory -Recurse | Remove-Item -Force -Recurse
                 Write-Host "✓ Removed all contents from $Name directory"
             }
@@ -44,5 +45,8 @@ Clean-Directory -Directory $INPUT_DIR -Name "input"
 
 # Clean output directory
 Clean-Directory -Directory $OUTPUT_DIR -Name "output"
+
+# Clean download directory
+Clean-Directory -Directory $DOWNLOAD_DIR -Name "download"
 
 Write-Host "Storage cleanup completed!"

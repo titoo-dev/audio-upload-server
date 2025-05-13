@@ -6,6 +6,7 @@
 BASE_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 INPUT_DIR="$BASE_DIR/storage/input"
 OUTPUT_DIR="$BASE_DIR/storage/output"
+DOWNLOAD_DIR="$BASE_DIR/storage/download"
 
 # Function to safely remove MP3 files from a directory
 clean_directory() {
@@ -14,8 +15,8 @@ clean_directory() {
     
     if [ -d "$dir" ]; then
         echo "Cleaning $name directory and its subdirectories..."
-        if [ "$name" = "output" ]; then
-            # Remove all contents including subdirectories for output
+        if [ "$name" = "output" ] || [ "$name" = "download" ]; then
+            # Remove all contents including subdirectories for output and download
             if ! sudo rm -rf "${dir:?}"/*; then
                 echo "❌ Error: Permission denied. Try running the script with sudo."
                 exit 1
@@ -42,5 +43,8 @@ clean_directory "$INPUT_DIR" "input"
 
 # Clean output directory
 clean_directory "$OUTPUT_DIR" "output"
+
+# Clean download directory
+clean_directory "$DOWNLOAD_DIR" "download"
 
 echo "Storage cleanup completed!"

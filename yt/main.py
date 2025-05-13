@@ -1,5 +1,7 @@
 from pytubefix import YouTube
 import argparse
+import time
+import random
 
 def download_youtube_audio(video_url, output_path="."):
     try:
@@ -7,7 +9,9 @@ def download_youtube_audio(video_url, output_path="."):
         audio_stream = yt.streams.get_audio_only()
         
         print(f"Downloading: {yt.title}")
-        filename = yt.title.replace(" ", "_") + ".mp3"
+        # Create unique filename with timestamp and random number
+        unique_suffix = f"{int(time.time())}-{random.randint(0, 999999999)}"
+        filename = f"audio-{unique_suffix}.mp3"
         audio_stream.download(output_path=output_path, filename=filename)
         print("Download complete!")
         print(f"Audio saved to: {output_path}/{filename}")

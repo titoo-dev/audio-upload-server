@@ -17,6 +17,12 @@ yarn.lock
 input/
 output/
 models/
+downloads/
+
+storage/input/
+storage/output/
+storage/models/
+storage/downloads/
 
 # Build files
 dist/

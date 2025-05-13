@@ -20,5 +20,16 @@ export const dockerUtils = {
       -n ${options.model} --two-stems=${options.stems} \
       --clip-mode ${options.clipMode} --overlap ${options.overlap} \
       '/data/input/${filename}' -o '/data/output'"`;
+  },
+
+  /**
+   * Build Docker command for youtube audio download
+   */
+  buildYoutubeCommand: (url: string): string => {
+    return `docker run --rm \
+      -v "${appConfig.storage.downloads}:/data/download" \
+      ${appConfig.docker.imageName} \
+      "python3 main.py ${url} \
+      --output '/data/download'"`;
   }
 };
