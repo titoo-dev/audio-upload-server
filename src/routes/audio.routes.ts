@@ -17,6 +17,6 @@ router.post('/separate/:filename', audioController.separateAudio);
 router.post('/separate-youtube', audioController.separateYoutubeAudio);
 
 // Route for accessing processed audio files
-router.get('/htdemucs/:filename/:type.mp3', audioController.getProcessedAudio);
+router.get('/output/htdemucs/:filename/:type.mp3', audioController.getProcessedAudio);
 
 export const audioRoutes = router;
